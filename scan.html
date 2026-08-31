@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Scanner Pengurus</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-image: url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1600&auto=format&fit=crop');
+            --bg-base: #0a0c11;
+            --bg-panel: rgba(18, 21, 29, 0.88);
+            --bg-panel-raised: #171b26;
+            --line: #232838;
+            --line-soft: #1a1e2a;
+            --red: #e11d2a;
+            --red-dim: #7a1620;
+            --red-glow: rgba(225, 29, 42, 0.35);
+            --text-primary: #f3f5f9;
+            --text-muted: #8890a3;
+            --text-faint: #545c70;
+            --success: #34d399;
+            --success-bg: #0e2b22;
+            --success-border: #175a41;
+            --error: #f78888;
+            --error-bg: #331213;
+            --error-border: #6b2226;
+            --overlay-dim: rgba(0, 0, 0, 0.65);
+        }
+
+        [data-theme="light"] {
+            --bg-base: #f1f5f9;
+            --bg-panel: rgba(255, 255, 255, 0.92);
+            --bg-panel-raised: #e2e8f0;
+            --line: #cbd5e1;
+            --line-soft: #e2e8f0;
+            --red: #dc2626;
+            --red-dim: #991b1b;
+            --red-glow: rgba(220, 38, 38, 0.2);
+            --text-primary: #0f172a;
+            --text-muted: #64748b;
+            --text-faint: #94a3b8;
+            --success: #059669;
+            --success-bg: #d1fae5;
+            --success-border: #34d399;
+            --error: #dc2626;
+            --error-bg: #fee2e2;
+            --error-border: #fca5a5;
+            --overlay-dim: rgba(255, 255, 255, 0.55);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(var(--overlay-dim), var(--overlay-dim)), var(--bg-image) no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 32px 20px;
+            position: relative;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .top-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .control-btn {
+            background: var(--bg-panel);
+            border: 1px solid var(--line);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+        }
+        .control-btn:hover { border-color: var(--red); }
+
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--line);
+            padding: 24px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            text-align: left;
+        }
+
+        .modal-card h3 {
+            margin-top: 0;
+            font-family: 'Sora', sans-serif;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .modal-card label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 5px;
+            margin-top: 12px;
+        }
+
+        .stage {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .brand-mark {
+            width: 46px; height: 46px; border-radius: 12px;
+            background: linear-gradient(155deg, var(--red), var(--red-dim));
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 20px var(--red-glow);
+        }
+        .brand-mark svg { width: 24px; height: 24px; }
+        .brand-text { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-primary); text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+
+        .box {
+            position: relative;
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--line);
+            padding: 34px 28px 28px;
+            border-radius: 18px 18px 22px 22px;
+            box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            text-align: center;
+        }
+
+        .box::before {
+            content: ""; position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+            width: 46px; height: 26px; background: var(--bg-base); border: 1px solid var(--line); border-bottom: none; border-radius: 12px 12px 0 0;
+        }
+        .box::after {
+            content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+            width: 26px; height: 10px; background: var(--bg-panel); border-radius: 6px;
+        }
+
+        h2 { margin: 6px 0 4px; font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-primary); }
+        p { color: var(--text-muted); font-size: 13.5px; line-height: 1.5; margin: 0 0 22px; }
+
+        input {
+            width: 100%; padding: 13px 16px; margin-bottom: 14px;
+            border: 1.5px solid var(--line); border-radius: 10px;
+            background: var(--bg-panel-raised); color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; outline: none;
+            transition: border-color 0.2s ease;
+        }
+        input::placeholder { color: var(--text-faint); }
+        input:focus { border-color: var(--red); box-shadow: 0 0 0 4px var(--red-glow); }
+
+        .btn {
+            background: var(--red); color: white; padding: 13px; width: 100%;
+            border: none; border-radius: 10px; cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 600;
+            transition: opacity 0.2s, transform 0.15s ease;
+        }
+        .btn:hover { opacity: 0.9; box-shadow: 0 8px 18px var(--red-glow); }
+        .btn:active { transform: scale(0.98); }
+
+        #loginError { color: var(--error); font-size: 13px; font-weight: 600; margin-top: 6px; display: none; }
+        
+        #forgotPasswordLink {
+            color: #f59e0b;
+            cursor: pointer;
+            text-decoration: underline;
+            font-weight: 700;
+        }
+        #forgotPasswordLink:hover { color: #fbbf24; }
+
+        .scan-frame {
+            position: relative; margin-top: 6px; border-radius: 14px; overflow: hidden; background: #000; border: 1px solid var(--line);
+        }
+        .scan-frame::before, .scan-frame::after, .corner-tl, .corner-br {
+            content: ""; position: absolute; width: 22px; height: 22px; border: 2.5px solid var(--red); z-index: 2; pointer-events: none;
+        }
+        .scan-frame::before { top: 8px; left: 8px; border-right: none; border-bottom: none; border-radius: 6px 0 0 0; }
+        .scan-frame::after { bottom: 8px; right: 8px; border-left: none; border-top: none; border-radius: 0 0 6px 0; }
+        .corner-tl { top: 8px; right: 8px; border-left: none; border-bottom: none; border-radius: 0 6px 0 0; }
+        .corner-br { bottom: 8px; left: 8px; border-right: none; border-top: none; border-radius: 0 0 0 6px; }
+
+        #reader { width: 100% !important; border: none !important; }
+        #reader select, #reader button {
+            font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-panel-raised);
+            color: var(--text-primary); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 13px; margin: 6px 4px; cursor: pointer;
+        }
+        #reader a { color: var(--red); }
+        #reader__dashboard_section_csr span { color: var(--text-muted); font-size: 12px; }
+
+        .alert {
+            margin-top: 16px; padding: 12px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: left; border-left: 3px solid transparent; display: none;
+        }
+        .alert-success { background: var(--success-bg); color: var(--success); border-left-color: var(--success-border); }
+        .alert-error { background: var(--error-bg); color: var(--error); border-left-color: var(--error-border); }
+
+        #logoutBtn { margin-top: 22px; background: transparent; color: var(--text-muted); border: 1.5px solid var(--line); }
+        #logoutBtn:hover { background: var(--bg-panel-raised); color: var(--text-primary); box-shadow: none; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="top-controls">
+        <button class="control-btn" id="settingsBtn" title="Pengaturan">⚙️ Setting</button>
+        <button class="control-btn" id="themeToggleBtn" title="Mode">🌓 Mode</button>
+    </div>
+
+    <!-- MODAL SETTING -->
+    <div id="settingsModal" class="modal-bg hidden">
+        <div class="modal-card">
+            <h3>Pengaturan Admin</h3>
+            
+            <label>Ganti Background Web:</label>
+            <input type="file" id="bgFileInput" accept="image/*" style="padding: 6px; background: var(--bg-panel-raised); border: 1px dashed var(--line); border-radius: 8px; cursor: pointer; width: 100%; margin-bottom: 15px;">
+
+            <hr style="border: 0; border-top: 1px solid var(--line); margin: 15px 0;">
+
+            <label>Ganti Password Admin:</label>
+            <input type="password" id="oldPassInput" placeholder="Password Lama...">
+            <input type="password" id="newPassInput" placeholder="Password Baru...">
+            <button class="btn" id="saveNewPassBtn" style="margin-bottom: 10px;">Simpan Password Baru</button>
+            <p id="passMsg" style="font-size: 12px; text-align: center; margin-bottom: 0; display: none;"></p>
+
+            <button class="btn" id="closeModalBtn" style="background: #334155; margin-top: 15px;">Tutup</button>
+        </div>
+    </div>
+
+    <!-- MODAL RESET PASSWORD -->
+    <div id="resetModal" class="modal-bg hidden">
+        <div class="modal-card">
+            <h3>Reset Password Darurat</h3>
+            <p style="font-size: 13px; margin-bottom: 15px;">Masukkan <b>Master Key</b> untuk mereset password pengurus:</p>
+            
+            <label>Master Key:</label>
+            <input type="password" id="masterKeyInput" placeholder="Masukkan Master Key...">
+            
+            <label>Password Baru:</label>
+            <input type="password" id="resetNewPassInput" placeholder="Password Baru...">
+            
+            <button class="btn" id="executeResetBtn" style="margin-bottom: 10px;">Reset Password Sekarang</button>
+            <p id="resetMsg" style="font-size: 12px; text-align: center; margin-bottom: 0; display: none;"></p>
+
+            <button class="btn" id="closeResetModalBtn" style="background: #334155; margin-top: 15px;">Batal</button>
+        </div>
+    </div>
+
+    <div class="stage">
+        <div class="brand">
+            <div class="brand-mark">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 4H8V8H4V4Z" fill="white"/>
+                    <path d="M16 4H20V8H16V4Z" fill="white"/>
+                    <path d="M4 16H8V20H4V16Z" fill="white"/>
+                    <path d="M14 14H16V16H14V14Z" fill="white"/>
+                    <path d="M18 14H20V16H18V14Z" fill="white"/>
+                    <path d="M14 18H16V20H14V18Z" fill="white"/>
+                    <path d="M18 18H20V20H18V18Z" fill="white"/>
+                </svg>
+            </div>
+            <span class="brand-text">Sistem Presensi Digital</span>
+        </div>
+
+        <!-- KOTAK LOGIN -->
+        <div id="login-box" class="box">
+            <h2>Login Pengurus</h2>
+            <p>Masukkan password khusus untuk mengakses scanner</p>
+            <form id="loginForm">
+                <input type="password" id="passwordInput" placeholder="Masukkan password..." required autocomplete="off">
+                <button type="submit" class="btn" id="loginBtn">Masuk scanner</button>
+            </form>
+            <p id="loginError"></p>
+        </div>
+
+        <!-- KOTAK SCANNER -->
+        <div id="scanner-box" class="box hidden">
+            <h2>Scanner Kehadiran</h2>
+            <p>Arahkan kamera ke QR Code siswa</p>
+
+            <div class="scan-frame">
+                <span class="corner-tl"></span>
+                <span class="corner-br"></span>
+                <div id="reader"></div>
+            </div>
+
+            <div id="alertBox" class="alert"></div>
+
+            <button class="btn" id="logoutBtn">Keluar / lock</button>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_PASSWORD = "paskanusa2026";
+        const MASTER_KEY = "paskib123";
+        
+        let currentPassword = localStorage.getItem('admin_password') || DEFAULT_PASSWORD;
+        let failedAttempts = parseInt(localStorage.getItem('failed_attempts') || '0');
+
+        const savedBg = localStorage.getItem('custom_bg_image');
+        if (savedBg) document.documentElement.style.setProperty('--bg-image', `url(${savedBg})`);
+
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const bgFileInput = document.getElementById('bgFileInput');
+
+        settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+        closeModalBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+        bgFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const base64Img = event.target.result;
+                    document.documentElement.style.setProperty('--bg-image', `url(${base64Img})`);
+                    localStorage.setItem('custom_bg_image', base64Img);
+                    settingsModal.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        const oldPassInput = document.getElementById('oldPassInput');
+        const newPassInput = document.getElementById('newPassInput');
+        const saveNewPassBtn = document.getElementById('saveNewPassBtn');
+        const passMsg = document.getElementById('passMsg');
+
+        saveNewPassBtn.addEventListener('click', () => {
+            if (oldPassInput.value === currentPassword) {
+                if (newPassInput.value.length >= 4) {
+                    currentPassword = newPassInput.value;
+                    localStorage.setItem('admin_password', currentPassword);
+                    passMsg.style.display = 'block';
+                    passMsg.style.color = 'var(--success)';
+                    passMsg.innerText = "Berhasil! Password baru disimpan.";
+                    oldPassInput.value = ""; newPassInput.value = "";
+                    failedAttempts = 0;
+                    localStorage.setItem('failed_attempts', '0');
+                } else {
+                    passMsg.style.display = 'block';
+                    passMsg.style.color = 'var(--error)';
+                    passMsg.innerText = "Password baru minimal 4 karakter!";
+                }
+            } else {
+                passMsg.style.display = 'block';
+                passMsg.style.color = 'var(--error)';
+                passMsg.innerText = "Password lama salah!";
+            }
+        });
+
+        const resetModal = document.getElementById('resetModal');
+        const closeResetModalBtn = document.getElementById('closeResetModalBtn');
+        const masterKeyInput = document.getElementById('masterKeyInput');
+        const resetNewPassInput = document.getElementById('resetNewPassInput');
+        const executeResetBtn = document.getElementById('executeResetBtn');
+        const resetMsg = document.getElementById('resetMsg');
+
+        closeResetModalBtn.addEventListener('click', () => resetModal.classList.add('hidden'));
+
+        function openResetModal() {
+            resetModal.classList.remove('hidden');
+            masterKeyInput.value = "";
+            resetNewPassInput.value = "";
+            resetMsg.style.display = 'none';
+        }
+
+        executeResetBtn.addEventListener('click', () => {
+            const masterKey = masterKeyInput.value;
+            const newPass = resetNewPassInput.value;
+
+            if (masterKey === MASTER_KEY) {
+                if (newPass.length >= 4) {
+                    currentPassword = newPass;
+                    localStorage.setItem('admin_password', currentPassword);
+                    failedAttempts = 0;
+                    localStorage.setItem('failed_attempts', '0');
+                    
+                    resetMsg.style.display = 'block';
+                    resetMsg.style.color = 'var(--success)';
+                    resetMsg.innerText = "Berhasil! Password telah direset.";
+                    
+                    setTimeout(() => {
+                        resetModal.classList.add('hidden');
+                        loginError.style.display = 'none';
+                    }, 1500);
+                } else {
+                    resetMsg.style.display = 'block';
+                    resetMsg.style.color = 'var(--error)';
+                    resetMsg.innerText = "Password baru minimal 4 karakter!";
+                }
+            } else {
+                resetMsg.style.display = 'block';
+                resetMsg.style.color = 'var(--error)';
+                resetMsg.innerText = "Master Key salah!";
+            }
+        });
+
+        const loginBox = document.getElementById('login-box');
+        const scannerBox = document.getElementById('scanner-box');
+        const loginForm = document.getElementById('loginForm');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginError = document.getElementById('loginError');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const alertBox = document.getElementById('alertBox');
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const inputPass = passwordInput.value;
+
+            loginBtn.disabled = true;
+            loginBtn.innerText = "Memeriksa...";
+            loginError.style.display = 'none';
+
+            setTimeout(() => {
+                loginBtn.disabled = false;
+                loginBtn.innerText = "Masuk scanner";
+
+                if (inputPass === currentPassword) {
+                    loginBox.classList.add('hidden');
+                    scannerBox.classList.remove('hidden');
+                    passwordInput.value = "";
+                    failedAttempts = 0;
+                    localStorage.setItem('failed_attempts', '0');
+                    loginError.style.display = 'none';
+                    initScanner();
+                } else {
+                    failedAttempts++;
+                    localStorage.setItem('failed_attempts', failedAttempts);
+                    passwordInput.value = "";
+                    loginError.style.display = 'block';
+
+                    if (failedAttempts >= 3) {
+                        loginError.innerHTML = `❌ Password salah 3x!<br><span id="forgotPasswordLink" onclick="openResetModal()">Lupa password? Klik di sini untuk reset.</span>`;
+                    } else {
+                        loginError.innerText = `⚠️ Password salah! (Percobaan ke-${failedAttempts} dari 3)`;
+                    }
+                }
+            }, 800);
+        });
+
+        logoutBtn.addEventListener('click', function() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().then(() => {
+                    scannerBox.classList.add('hidden');
+                    loginBox.classList.remove('hidden');
+                }).catch(err => console.error("Gagal stop scanner", err));
+            }
+        });
+
+        const htmlElement = document.documentElement;
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const savedTheme = localStorage.getItem('app_theme');
+
+        if (savedTheme) {
+            htmlElement.setAttribute('data-theme', savedTheme);
+        } else if (!prefersDark) {
+            htmlElement.setAttribute('data-theme', 'light');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            if (currentTheme === 'light') {
+                htmlElement.removeAttribute('data-theme');
+                localStorage.setItem('app_theme', 'dark');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('app_theme', 'light');
+            }
+        });
+
+        // Link Web App Google Apps Script
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx3AdFQWkBSyVsbz6TvYvvJ9dCsGcX2mkUQXcmS24LKLaV5L2r2KmVkln4x_MCrGEmZbg/exec";
+        let html5QrcodeScanner = null;
+
+        function showNotification(message, type) {
+            alertBox.innerText = message;
+            alertBox.style.display = 'block';
+            alertBox.className = `alert alert-${type}`;
+            setTimeout(() => { alertBox.style.display = 'none'; }, 4000);
+        }
+
+        // Fungsi Membaca Format QR Code yang Membawa Status & Notifikasi Sukses
+        function sendToSpreadsheet(decodedText) {
+            try {
+                let parts = decodedText.split(" | ");
+                let nama = parts[0] ? parts[0].replace("Nama: ", "") : "Tidak Dikenal";
+                let kelas = parts[1] ? parts[1].replace("Kelas: ", "") : "-";
+                let statusKeterangan = parts[2] && parts[2].includes("Status: ") ? parts[2].replace("Status: ", "") : "HADIR";
+                let tanggal = parts[3] ? parts[3].replace("Tanggal: ", "") : new Date().toISOString().split('T')[0];
+                let waktu = new Date().toLocaleTimeString();
+
+                let dataKirim = { 
+                    nama: nama, 
+                    kelas: kelas, 
+                    status: statusKeterangan, 
+                    tanggal: tanggal, 
+                    waktu: waktu 
+                };
+
+                showNotification(`Memproses absensi ${nama}...`, "success");
+
+                fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dataKirim)
+                })
+                .then(() => { 
+                    showNotification(`✅ SUKSES! Absensi ${nama} (${kelas}) dengan status ${statusKeterangan} berhasil masuk Spreadsheet!`, "success"); 
+                })
+                .catch(error => { 
+                    showNotification("❌ Gagal mengirim data ke database!", "error"); 
+                });
+
+            } catch (e) {
+                showNotification("❌ Format QR Code tidak valid!", "error");
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            html5QrcodeScanner.clear().then(_ => {
+                sendToSpreadsheet(decodedText);
+                setTimeout(() => { html5QrcodeScanner.render(onScanSuccess); }, 3000);
+            }).catch(error => console.error("Failed to clear scanner", error));
+        }
+
+        function initScanner() {
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+            }
+            html5QrcodeScanner.render(onScanSuccess);
+        }
+    </script>
+</body>
+</html>
