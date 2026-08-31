@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Absensi Siswa - QR Code</title>
+    <!-- Library QR Code Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-image: url('BACKGROUND.jpeg');
+            --bg-base: #0a0c11;
+            --bg-panel: rgba(18, 21, 29, 0.88);
+            --bg-panel-raised: #171b26;
+            --line: #232838;
+            --line-soft: #1a1e2a;
+            --red: #e11d2a;
+            --red-dim: #7a1620;
+            --red-glow: rgba(225, 29, 42, 0.35);
+            --text-primary: #f3f5f9;
+            --text-muted: #8890a3;
+            --text-faint: #545c70;
+            --success: #34d399;
+            --success-bg: #0e2b22;
+            --success-border: #175a41;
+            --error: #f78888;
+            --error-bg: #331213;
+            --error-border: #6b2226;
+            --overlay-dim: rgba(0, 0, 0, 0.65);
+        }
+
+        [data-theme="light"] {
+            --bg-base: #f1f5f9;
+            --bg-panel: rgba(255, 255, 255, 0.92);
+            --bg-panel-raised: #e2e8f0;
+            --line: #cbd5e1;
+            --line-soft: #e2e8f0;
+            --red: #dc2626;
+            --red-dim: #991b1b;
+            --red-glow: rgba(220, 38, 38, 0.2);
+            --text-primary: #0f172a;
+            --text-muted: #64748b;
+            --text-faint: #94a3b8;
+            --success: #059669;
+            --success-bg: #d1fae5;
+            --success-border: #34d399;
+            --error: #dc2626;
+            --error-bg: #fee2e2;
+            --error-border: #fca5a5;
+            --overlay-dim: rgba(255, 255, 255, 0.55);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(var(--overlay-dim), var(--overlay-dim)), var(--bg-image) no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 32px 20px;
+            position: relative;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .top-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .control-btn {
+            background: var(--bg-panel);
+            border: 1px solid var(--line);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+        }
+        .control-btn:hover { border-color: var(--red); }
+
+        .stage {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .brand-mark {
+            width: 46px; height: 46px; border-radius: 12px;
+            background: linear-gradient(155deg, var(--red), var(--red-dim));
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 20px var(--red-glow);
+        }
+        .brand-mark svg { width: 24px; height: 24px; }
+        .brand-text { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-primary); text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+
+        .box {
+            position: relative;
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--line);
+            padding: 34px 28px 28px;
+            border-radius: 18px 18px 22px 22px;
+            box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            text-align: center;
+        }
+
+        .box::before {
+            content: ""; position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+            width: 46px; height: 26px; background: var(--bg-base); border: 1px solid var(--line); border-bottom: none; border-radius: 12px 12px 0 0;
+        }
+        .box::after {
+            content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+            width: 26px; height: 10px; background: var(--bg-panel); border-radius: 6px;
+        }
+
+        h2 { margin: 6px 0 4px; font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-primary); }
+        p { color: var(--text-muted); font-size: 13.5px; line-height: 1.5; margin: 0 0 22px; text-align: left; }
+
+        label {
+            font-size: 12px; font-weight: 600; color: var(--text-muted);
+            display: block; margin-bottom: 5px; text-align: left;
+        }
+
+        input, select {
+            width: 100%; padding: 13px 16px; margin-bottom: 14px;
+            border: 1.5px solid var(--line); border-radius: 10px;
+            background: var(--bg-panel-raised); color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; outline: none;
+            transition: border-color 0.2s ease;
+        }
+        input::placeholder { color: var(--text-faint); }
+        input:focus, select:focus { border-color: var(--red); box-shadow: 0 0 0 4px var(--red-glow); }
+
+        .btn {
+            background: var(--red); color: white; padding: 13px; width: 100%;
+            border: none; border-radius: 10px; cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 600;
+            transition: opacity 0.2s, transform 0.15s ease;
+        }
+        .btn:hover { opacity: 0.9; box-shadow: 0 8px 18px var(--red-glow); }
+        .btn:active { transform: scale(0.98); }
+
+        #errorMsg { color: var(--error); font-size: 13px; font-weight: 600; margin-bottom: 10px; display: none; text-align: left; }
+
+        #qrcode-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        #qrcode {
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="top-controls">
+        <button class="control-btn" id="themeToggleBtn" title="Mode">🌓 Mode</button>
+    </div>
+
+    <div class="stage">
+        <div class="brand">
+            <div class="brand-mark">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 4H8V8H4V4Z" fill="white"/>
+                    <path d="M16 4H20V8H16V4Z" fill="white"/>
+                    <path d="M4 16H8V20H4V16Z" fill="white"/>
+                    <path d="M14 14H16V16H14V14Z" fill="white"/>
+                    <path d="M18 14H20V16H18V14Z" fill="white"/>
+                    <path d="M14 18H16V20H14V18Z" fill="white"/>
+                    <path d="M18 18H20V20H18V18Z" fill="white"/>
+                </svg>
+            </div>
+            <span class="brand-text">Sistem Presensi Digital</span>
+        </div>
+
+        <!-- FORM ABSENSI SISWA -->
+        <div id="form-box" class="box">
+            <h2>Absensi Siswa</h2>
+            <p>Masukkan data diri kamu untuk menghasilkan QR Code kehadiran.</p>
+
+            <form id="attendanceForm">
+                <label>Nama Lengkap:</label>
+                <input type="text" id="namaInput" placeholder="Contoh: C. RONALDO" autocomplete="off" style="text-transform: uppercase;">
+
+                <label>Kelas / Jurusan:</label>
+                <input type="text" id="kelasInput" placeholder="Contoh: XII MKT 2" autocomplete="off" style="text-transform: uppercase;">
+
+                <label>Keterangan Kehadiran:</label>
+                <select id="statusKeterangan">
+                    <option value="HADIR">Hadir</option>
+                    <option value="IZIN">Izin</option>
+                    <option value="SAKIT">Sakit</option>
+                </select>
+                
+                <p id="errorMsg">⚠️ Harap isi Nama dan Kelas terlebih dahulu!</p>
+
+                <button type="submit" class="btn">Generate QR Code</button>
+            </form>
+        </div>
+
+        <!-- KOTAK HASIL QR CODE -->
+        <div id="result-box" class="box hidden">
+            <h2>QR Code Kamu</h2>
+            <p style="text-align: center;">Tunjukkan QR Code ini ke pengurus untuk di-scan.</p>
+
+            <div id="qrcode-container">
+                <div id="qrcode"></div>
+            </div>
+
+            <p id="userInfoDisplay" style="font-weight: 600; color: var(--text-primary); text-align: center; margin-bottom: 15px;"></p>
+
+            <button class="btn" id="resetFormBtn" style="background: #334155;">Buat Ulang / Ganti Data</button>
+        </div>
+    </div>
+
+    <script>
+        const formBox = document.getElementById('form-box');
+        const resultBox = document.getElementById('result-box');
+        const attendanceForm = document.getElementById('attendanceForm');
+        const namaInput = document.getElementById('namaInput');
+        const kelasInput = document.getElementById('kelasInput');
+        const statusKeterangan = document.getElementById('statusKeterangan');
+        const errorMsg = document.getElementById('errorMsg');
+        const userInfoDisplay = document.getElementById('userInfoDisplay');
+        const resetFormBtn = document.getElementById('resetFormBtn');
+        const submitBtn = attendanceForm.querySelector('button[type="submit"]');
+
+        // URL Web App yang sudah dibersihkan dan normal
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx3AdFQWkBSyVsbz6TvYvvJ9dCsGcX2mkUQXcmS24LKLaV5L2r2KmVkln4x_MCrGEmZbg/exec";
+
+        attendanceForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nama = namaInput.value.trim();
+            const kelas = kelasInput.value.trim();
+            const keterangan = statusKeterangan.value;
+
+            if (nama === "" || kelas === "") {
+                errorMsg.style.display = 'block';
+                errorMsg.innerText = "⚠️ Harap isi Nama dan Kelas terlebih dahulu!";
+                return;
+            }
+
+            errorMsg.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Mengecek status kuncian...";
+
+            // Cek status siswa ke Google Spreadsheet
+            fetch(`${WEB_APP_URL}?nama=${encodeURIComponent(nama)}&kelas=${encodeURIComponent(kelas)}`)
+                .then(response => response.json())
+                .then(data => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Generate QR Code";
+
+                    if (data.status === "LOCKED") {
+                        errorMsg.style.display = 'block';
+                        errorMsg.innerHTML = "🔒 <b>AKUN TERKUNCI!</b><br>Kamu tidak hadir 3x berturut-turut. Silakan hubungi Pengurus/Admin!";
+                    } else {
+                        const tanggalHariIni = new Date().toISOString().split('T')[0];
+                        const qrText = `Nama: ${nama} | Kelas: ${kelas} | Status: ${keterangan} | Tanggal: ${tanggalHariIni}`;
+
+                        formBox.classList.add('hidden');
+                        resultBox.classList.remove('hidden');
+                        userInfoDisplay.innerText = `${nama} (${kelas}) - ${keterangan}`;
+
+                        document.getElementById("qrcode").innerHTML = "";
+                        new QRCode(document.getElementById("qrcode"), {
+                            text: qrText,
+                            width: 200, height: 200,
+                            colorDark : "#000000", colorLight : "#ffffff",
+                            correctLevel : QRCode.CorrectLevel.H
+                        });
+                    }
+                })
+                .catch(err => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Generate QR Code";
+                    console.error("Error checking status", err);
+                });
+        });
+
+        resetFormBtn.addEventListener('click', function() {
+            namaInput.value = "";
+            kelasInput.value = "";
+            statusKeterangan.value = "HADIR";
+            resultBox.classList.add('hidden');
+            formBox.classList.remove('hidden');
+        });
+
+        // === TEMA GELAP / TERANG ===
+        const htmlElement = document.documentElement;
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const savedTheme = localStorage.getItem('app_theme');
+
+        if (savedTheme) {
+            htmlElement.setAttribute('data-theme', savedTheme);
+        } else if (!prefersDark) {
+            htmlElement.setAttribute('data-theme', 'light');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            if (currentTheme === 'light') {
+                htmlElement.removeAttribute('data-theme');
+                localStorage.setItem('app_theme', 'dark');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('app_theme', 'light');
+            }
+        });
+    </script>
+</body>
+</html>
