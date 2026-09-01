@@ -94,6 +94,17 @@
         }
         .control-btn:hover { border-color: var(--red); }
 
+        .footer-credit {
+            position: fixed;
+            bottom: 14px;
+            right: 18px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            z-index: 5;
+            pointer-events: none;
+        }
+
         .modal-bg {
             position: fixed;
             inset: 0;
@@ -268,6 +279,8 @@
         <button class="control-btn" id="themeToggleBtn" title="Mode">🌓 Mode</button>
     </div>
 
+    <div class="footer-credit">© 2026 noplaawz. All rights reserved.</div>
+
     <!-- MODAL SETTING -->
     <div id="settingsModal" class="modal-bg hidden">
         <div class="modal-card">
@@ -439,7 +452,7 @@
         // ================== KONFIGURASI ==================
         const DEFAULT_PASSWORD = "paskanusa26jaya";
         const MASTER_KEY = "paskib123";
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby2PmJAh9FAPz-dPQkLdGryxTF4Ly-vjrL--JKMZkznxSAgJEJPjenSDiJsnU7-KkTm_w/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx3AdFQWkBSyVsbz6TvYvvJ9dCsGcX2mkUQXcmS24LKLaV5L2r2KmVkln4x_MCrGEmZbg/exec";
 
         let currentPassword = localStorage.getItem('admin_password') || DEFAULT_PASSWORD;
         let failedAttempts = parseInt(localStorage.getItem('failed_attempts') || '0');
@@ -632,9 +645,9 @@
                     loginError.style.display = 'block';
 
                     if (failedAttempts >= 3) {
-                        loginError.innerHTML = ` Password salah 3x!<br><span id="forgotPasswordLink" onclick="openResetModal()">Lupa password? Klik di sini untuk reset.</span>`;
+                        loginError.innerHTML = `❌ Password salah 3x!<br><span id="forgotPasswordLink" onclick="openResetModal()">Lupa password? Klik di sini untuk reset.</span>`;
                     } else {
-                        loginError.innerText = ` Password salah! (Percobaan ke-${failedAttempts} dari 3)`;
+                        loginError.innerText = `⚠️ Password salah! (Percobaan ke-${failedAttempts} dari 3)`;
                     }
                 }
             }, 800);
@@ -689,7 +702,7 @@
 
             if (nama === "" || kelas === "") {
                 errorMsg.style.display = 'block';
-                errorMsg.innerText = " Harap isi Nama dan Kelas terlebih dahulu!";
+                errorMsg.innerText = "⚠️ Harap isi Nama dan Kelas terlebih dahulu!";
                 return;
             }
 
@@ -705,7 +718,7 @@
 
                     if (data.status === "LOCKED") {
                         errorMsg.style.display = 'block';
-                        errorMsg.innerHTML = " <b>AKUN TERKUNCI!</b><br>Kamu tidak hadir 3x berturut-turut. Silakan hubungi Pengurus/Admin!";
+                        errorMsg.innerHTML = "🔒 <b>AKUN TERKUNCI!</b><br>Kamu tidak hadir 3x berturut-turut. Silakan hubungi Pengurus/Admin!";
                     } else {
                         const now = new Date();
                         const tanggalHariIni = now.getFullYear() + "-" +
@@ -729,7 +742,7 @@
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Generate QR Code";
                     errorMsg.style.display = 'block';
-                    errorMsg.innerHTML = " Gagal terhubung ke server. Cek koneksi internet atau hubungi admin.<br><small style='opacity:0.7'>" + err.message + "</small>";
+                    errorMsg.innerHTML = "❌ Gagal terhubung ke server. Cek koneksi internet atau hubungi admin.<br><small style='opacity:0.7'>" + err.message + "</small>";
                     console.error("Error checking status", err);
                 });
         });
@@ -769,14 +782,14 @@
                     body: JSON.stringify(dataKirim)
                 })
                 .then(() => {
-                    showNotification(` SUKSES! Absensi ${nama} (${kelas}) dengan status ${statusKet} berhasil masuk Spreadsheet!`, "success");
+                    showNotification(`✅ SUKSES! Absensi ${nama} (${kelas}) dengan status ${statusKet} berhasil masuk Spreadsheet!`, "success");
                 })
                 .catch(error => {
-                    showNotification(" Gagal mengirim data ke database!", "error");
+                    showNotification("❌ Gagal mengirim data ke database!", "error");
                 });
 
             } catch (e) {
-                showNotification(" Format QR Code tidak valid!", "error");
+                showNotification("❌ Format QR Code tidak valid!", "error");
             }
         }
 
@@ -790,7 +803,7 @@
         function initScanner() {
             try {
                 if (typeof Html5QrcodeScanner === 'undefined') {
-                    document.getElementById('reader').innerHTML = '<p style="color:#f78888;padding:16px;text-align:center;"> Library kamera gagal dimuat. Cek koneksi internet lalu refresh halaman.</p>';
+                    document.getElementById('reader').innerHTML = '<p style="color:#f78888;padding:16px;text-align:center;">❌ Library kamera gagal dimuat. Cek koneksi internet lalu refresh halaman.</p>';
                     return;
                 }
                 if (!html5QrcodeScanner) {
@@ -799,7 +812,7 @@
                 html5QrcodeScanner.render(onScanSuccess);
             } catch (err) {
                 console.error("Gagal inisialisasi scanner", err);
-                document.getElementById('reader').innerHTML = '<p style="color:#f78888;padding:16px;text-align:center;"> Gagal membuka kamera: ' + err.message + '</p>';
+                document.getElementById('reader').innerHTML = '<p style="color:#f78888;padding:16px;text-align:center;">❌ Gagal membuka kamera: ' + err.message + '</p>';
             }
         }
     </script>
