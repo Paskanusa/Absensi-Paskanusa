@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Absensi Siswa - QR Code</title>
+    <title>Sistem Presensi Digital</title>
     <!-- Library QR Code Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Library untuk akses kamera & baca QR Code -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- Using system Times New Roman font instead of web fonts -->
     <style>
         :root {
             --bg-image: url('background.jpeg');
@@ -54,7 +56,7 @@
         * { box-sizing: border-box; }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: "Times New Roman", Times, serif;
             background: linear-gradient(var(--overlay-dim), var(--overlay-dim)), var(--bg-image) no-repeat center center fixed;
             background-size: cover;
             color: var(--text-primary);
@@ -70,7 +72,7 @@
         }
 
         .top-controls {
-            position: absolute;
+            position: fixed;
             top: 20px;
             right: 20px;
             display: flex;
@@ -92,6 +94,29 @@
         }
         .control-btn:hover { border-color: var(--red); }
 
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--line);
+            padding: 24px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            text-align: left;
+        }
+        .modal-card h3 { margin-top: 0; font-family: "Times New Roman", Times, serif; font-size: 18px; text-align: center; }
+        .modal-card label { font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 5px; margin-top: 12px; }
+
         .stage {
             position: relative;
             width: 100%;
@@ -108,15 +133,15 @@
             gap: 10px;
             margin-bottom: 22px;
         }
-
         .brand-mark {
             width: 46px; height: 46px; border-radius: 12px;
-            background: linear-gradient(155deg, var(--red), var(--red-dim));
+            background: transparent;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 8px 20px var(--red-glow);
+            filter: drop-shadow(0 6px 14px rgba(0,0,0,0.45));
         }
-        .brand-mark svg { width: 24px; height: 24px; }
-        .brand-text { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-primary); text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+        .brand-mark img { width: 100%; height: 100%; object-fit: contain; }
+        .brand-mark.brand-mark-lg { width: 84px; height: 84px; border-radius: 18px; }
+        .brand-text { font-family: "Times New Roman", Times, serif; font-size: 13px; font-weight: 500; color: var(--text-primary); text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
 
         .box {
             position: relative;
@@ -129,7 +154,6 @@
             width: 100%;
             text-align: center;
         }
-
         .box::before {
             content: ""; position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
             width: 46px; height: 26px; background: var(--bg-base); border: 1px solid var(--line); border-bottom: none; border-radius: 12px 12px 0 0;
@@ -139,19 +163,18 @@
             width: 26px; height: 10px; background: var(--bg-panel); border-radius: 6px;
         }
 
-        h2 { margin: 6px 0 4px; font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-primary); }
-        p { color: var(--text-muted); font-size: 13.5px; line-height: 1.5; margin: 0 0 22px; text-align: left; }
+        h2 { margin: 6px 0 4px; font-family: "Times New Roman", Times, serif; font-size: 20px; font-weight: 700; color: var(--text-primary); }
+        h1.cover-title { margin: 4px 0 8px; font-family: "Times New Roman", Times, serif; font-size: 26px; font-weight: 800; color: var(--text-primary); }
+        p { color: var(--text-muted); font-size: 13.5px; line-height: 1.5; margin: 0 0 22px; }
+        p.form-hint { text-align: left; }
 
-        label {
-            font-size: 12px; font-weight: 600; color: var(--text-muted);
-            display: block; margin-bottom: 5px; text-align: left;
-        }
+        label { font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 5px; text-align: left; }
 
         input, select {
             width: 100%; padding: 13px 16px; margin-bottom: 14px;
             border: 1.5px solid var(--line); border-radius: 10px;
             background: var(--bg-panel-raised); color: var(--text-primary);
-            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; outline: none;
+            font-family: "Times New Roman", Times, serif; font-size: 15px; outline: none;
             transition: border-color 0.2s ease;
         }
         input::placeholder { color: var(--text-faint); }
@@ -160,60 +183,177 @@
         .btn {
             background: var(--red); color: white; padding: 13px; width: 100%;
             border: none; border-radius: 10px; cursor: pointer;
-            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 600;
-            transition: opacity 0.2s, transform 0.15s ease;
+            font-family: "Times New Roman", Times, serif; font-size: 15px; font-weight: 600;
+            transition: opacity 0.2s, transform 0.15s ease, box-shadow 0.15s ease;
         }
         .btn:hover { opacity: 0.9; box-shadow: 0 8px 18px var(--red-glow); }
         .btn:active { transform: scale(0.98); }
+        .btn.btn-ghost { background: transparent; color: var(--text-muted); border: 1.5px solid var(--line); }
+        .btn.btn-ghost:hover { background: var(--bg-panel-raised); color: var(--text-primary); box-shadow: none; opacity: 1; }
+        .btn.btn-secondary { background: #334155; }
 
+        .btn-row { display: flex; flex-direction: column; gap: 12px; }
+
+        .back-link {
+            display: inline-block;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: "Times New Roman", Times, serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 14px;
+            padding: 0;
+        }
+        .back-link:hover { color: var(--red); }
+
+        #loginError { color: var(--error); font-size: 13px; font-weight: 600; margin-top: 6px; display: none; }
         #errorMsg { color: var(--error); font-size: 13px; font-weight: 600; margin-bottom: 10px; display: none; text-align: left; }
 
-        #qrcode-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-top: 15px;
-        }
+        #forgotPasswordLink { color: #f59e0b; cursor: pointer; text-decoration: underline; font-weight: 700; }
+        #forgotPasswordLink:hover { color: #fbbf24; }
 
-        #qrcode {
-            background: white;
-            padding: 12px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            display: inline-block;
-            margin-bottom: 15px;
+        .scan-frame {
+            position: relative; margin-top: 6px; border-radius: 14px; overflow: hidden; background: #000; border: 1px solid var(--line);
         }
+        .scan-frame::before, .scan-frame::after, .corner-tl, .corner-br {
+            content: ""; position: absolute; width: 22px; height: 22px; border: 2.5px solid var(--red); z-index: 2; pointer-events: none;
+        }
+        .scan-frame::before { top: 8px; left: 8px; border-right: none; border-bottom: none; border-radius: 6px 0 0 0; }
+        .scan-frame::after { bottom: 8px; right: 8px; border-left: none; border-top: none; border-radius: 0 0 6px 0; }
+        .corner-tl { top: 8px; right: 8px; border-left: none; border-bottom: none; border-radius: 0 6px 0 0; }
+        .corner-br { bottom: 8px; left: 8px; border-right: none; border-top: none; border-radius: 0 0 0 6px; }
 
-        .hidden { display: none !important; }
+        #reader { width: 100% !important; border: none !important; }
+        #reader select, #reader button {
+            font-family: "Times New Roman", Times, serif; background: var(--bg-panel-raised);
+            color: var(--text-primary); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 13px; margin: 6px 4px; cursor: pointer;
+        }
+        #reader a { color: var(--red); }
+        #reader__dashboard_section_csr span { color: var(--text-muted); font-size: 12px; }
+
+        .alert {
+            margin-top: 16px; padding: 12px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: left; border-left: 3px solid transparent; display: none;
+        }
+        .alert-success { background: var(--success-bg); color: var(--success); border-left-color: var(--success-border); }
+        .alert-error { background: var(--error-bg); color: var(--error); border-left-color: var(--error-border); }
+
+        #qrcode-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 15px; }
+        #qrcode { background: white; padding: 12px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: inline-block; margin-bottom: 15px; }
+
+        .menu-options { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
+        .menu-option {
+            display: flex; align-items: center; gap: 14px; text-align: left;
+            padding: 16px; border: 1.5px solid var(--line); border-radius: 14px;
+            background: var(--bg-panel-raised); cursor: pointer; transition: border-color 0.2s ease, transform 0.15s ease;
+        }
+        .menu-option:hover { border-color: var(--red); transform: translateY(-2px); }
+        .menu-option .icon { font-size: 26px; }
+        .menu-option .label { font-family: "Times New Roman", Times, serif; font-weight: 700; font-size: 15px; color: var(--text-primary); }
+        .menu-option .sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+        .screen.hidden, .hidden { display: none !important; }
+
+        @media (max-width: 380px) {
+            .box { padding: 28px 20px 22px; }
+            h2 { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
 
     <div class="top-controls">
+        <button class="control-btn" id="settingsBtn" title="Pengaturan">⚙️ Setting</button>
         <button class="control-btn" id="themeToggleBtn" title="Mode">🌓 Mode</button>
+    </div>
+
+    <!-- MODAL SETTING -->
+    <div id="settingsModal" class="modal-bg hidden">
+        <div class="modal-card">
+            <h3>Pengaturan Admin</h3>
+
+            <label>Ganti Background Web (khusus admin):</label>
+            <input type="password" id="bgAdminPass" placeholder="Password admin..." style="margin-bottom: 10px;">
+            <input type="file" id="bgFileInput" accept="image/*" style="padding: 6px; background: var(--bg-panel-raised); border: 1px dashed var(--line); border-radius: 8px; cursor: pointer; width: 100%; margin-bottom: 6px;">
+            <p id="bgMsg" style="font-size: 12px; text-align: center; margin: 0 0 15px; display: none;"></p>
+
+            <hr style="border: 0; border-top: 1px solid var(--line); margin: 15px 0;">
+
+            <label>Ganti Password Admin:</label>
+            <input type="password" id="oldPassInput" placeholder="Password Lama...">
+            <input type="password" id="newPassInput" placeholder="Password Baru...">
+            <button class="btn" id="saveNewPassBtn" style="margin-bottom: 10px;">Simpan Password Baru</button>
+            <p id="passMsg" style="font-size: 12px; text-align: center; margin-bottom: 0; display: none;"></p>
+
+            <button class="btn btn-secondary" id="closeModalBtn" style="margin-top: 15px;">Tutup</button>
+        </div>
+    </div>
+
+    <!-- MODAL RESET PASSWORD -->
+    <div id="resetModal" class="modal-bg hidden">
+        <div class="modal-card">
+            <h3>Reset Password Darurat</h3>
+            <p style="font-size: 13px; margin-bottom: 15px;">Masukkan <b>Master Key</b> untuk mereset password pengurus:</p>
+
+            <label>Master Key:</label>
+            <input type="password" id="masterKeyInput" placeholder="Masukkan Master Key...">
+
+            <label>Password Baru:</label>
+            <input type="password" id="resetNewPassInput" placeholder="Password Baru...">
+
+            <button class="btn" id="executeResetBtn" style="margin-bottom: 10px;">Reset Password Sekarang</button>
+            <p id="resetMsg" style="font-size: 12px; text-align: center; margin-bottom: 0; display: none;"></p>
+
+            <button class="btn btn-secondary" id="closeResetModalBtn" style="margin-top: 15px;">Batal</button>
+        </div>
     </div>
 
     <div class="stage">
         <div class="brand">
             <div class="brand-mark">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 4H8V8H4V4Z" fill="white"/>
-                    <path d="M16 4H20V8H16V4Z" fill="white"/>
-                    <path d="M4 16H8V20H4V16Z" fill="white"/>
-                    <path d="M14 14H16V16H14V14Z" fill="white"/>
-                    <path d="M18 14H20V16H18V14Z" fill="white"/>
-                    <path d="M14 18H16V20H14V18Z" fill="white"/>
-                    <path d="M18 18H20V20H18V18Z" fill="white"/>
-                </svg>
+                <img src="logo_paskanusa.png" alt="Logo Paskanusa">
             </div>
             <span class="brand-text">Sistem Presensi Digital</span>
         </div>
 
-        <!-- FORM ABSENSI SISWA -->
-        <div id="form-box" class="box">
+        <!-- LAYAR 1: COVER -->
+        <div id="cover-screen" class="screen box">
+            <div class="brand-mark brand-mark-lg" style="margin: 0 auto 18px;">
+                <img src="logo_paskanusa.png" alt="Logo Paskanusa">
+            </div>
+            <h1 class="cover-title" style="text-align: center;">Presensi Digital</h1>
+            <p style="text-align: center;">Absen masuk dengan QR Code, cepat dan tanpa antre.</p>
+            <button class="btn" id="coverStartBtn">Mulai →</button>
+        </div>
+
+        <!-- LAYAR 2: MENU -->
+        <div id="menu-screen" class="screen box hidden">
+            <h2>Mau ngapain?</h2>
+            <p>Pilih salah satu di bawah ini.</p>
+            <div class="menu-options">
+                <div class="menu-option" id="menuAbsensiBtn">
+                    <span class="icon">📋</span>
+                    <div>
+                        <div class="label">Absensi</div>
+                        <div class="sub">Isi data & generate QR Code kehadiran</div>
+                    </div>
+                </div>
+                <div class="menu-option" id="menuScanBtn">
+                    <span class="icon">🔒</span>
+                    <div>
+                        <div class="label">Scan / Admin</div>
+                        <div class="sub">Khusus pengurus, perlu password</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LAYAR 3: FORM ABSENSI -->
+        <div id="form-screen" class="screen box hidden">
+            <button class="back-link" id="backToMenuFromForm">← Kembali ke menu</button>
             <h2>Absensi Siswa</h2>
-            <p>Masukkan data diri kamu untuk menghasilkan QR Code kehadiran.</p>
+            <p class="form-hint">Masukkan data diri kamu untuk menghasilkan QR Code kehadiran.</p>
 
             <form id="attendanceForm">
                 <label>Nama Lengkap:</label>
@@ -228,15 +368,15 @@
                     <option value="IZIN">Izin</option>
                     <option value="SAKIT">Sakit</option>
                 </select>
-                
+
                 <p id="errorMsg">⚠️ Harap isi Nama dan Kelas terlebih dahulu!</p>
 
                 <button type="submit" class="btn">Generate QR Code</button>
             </form>
         </div>
 
-        <!-- KOTAK HASIL QR CODE -->
-        <div id="result-box" class="box hidden">
+        <!-- LAYAR 4: HASIL QR CODE -->
+        <div id="qr-result-screen" class="screen box hidden">
             <h2>QR Code Kamu</h2>
             <p style="text-align: center;">Tunjukkan QR Code ini ke pengurus untuk di-scan.</p>
 
@@ -246,84 +386,269 @@
 
             <p id="userInfoDisplay" style="font-weight: 600; color: var(--text-primary); text-align: center; margin-bottom: 15px;"></p>
 
-            <button class="btn" id="resetFormBtn" style="background: #334155;">Buat Ulang / Ganti Data</button>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="resetFormBtn">Buat Ulang / Ganti Data</button>
+                <button class="btn btn-ghost" id="backToMenuFromResult">Kembali ke menu</button>
+            </div>
+        </div>
+
+        <!-- LAYAR 5: LOGIN ADMIN -->
+        <div id="admin-login-screen" class="screen box hidden">
+            <button class="back-link" id="backToMenuFromLogin">← Kembali ke menu</button>
+            <h2>Login Pengurus</h2>
+            <p>Masukkan password khusus untuk mengakses scanner</p>
+            <form id="loginForm">
+                <input type="password" id="passwordInput" placeholder="Masukkan password..." required autocomplete="off">
+                <button type="submit" class="btn" id="loginBtn">Masuk scanner</button>
+            </form>
+            <p id="loginError"></p>
+        </div>
+
+        <!-- LAYAR 6: SCANNER -->
+        <div id="scanner-screen" class="screen box hidden">
+            <h2>Scanner Kehadiran</h2>
+            <p>Arahkan kamera ke QR Code siswa</p>
+
+            <div class="scan-frame">
+                <span class="corner-tl"></span>
+                <span class="corner-br"></span>
+                <div id="reader"></div>
+            </div>
+
+            <div id="alertBox" class="alert"></div>
+
+            <button class="btn btn-ghost" id="logoutBtn">Keluar / lock</button>
         </div>
     </div>
 
     <script>
-        const formBox = document.getElementById('form-box');
-        const resultBox = document.getElementById('result-box');
-        const attendanceForm = document.getElementById('attendanceForm');
-        const namaInput = document.getElementById('namaInput');
-        const kelasInput = document.getElementById('kelasInput');
-        const statusKeterangan = document.getElementById('statusKeterangan');
-        const errorMsg = document.getElementById('errorMsg');
-        const userInfoDisplay = document.getElementById('userInfoDisplay');
-        const resetFormBtn = document.getElementById('resetFormBtn');
-        const submitBtn = attendanceForm.querySelector('button[type="submit"]');
+        // ================== NAVIGASI ANTAR LAYAR ==================
+        const screens = document.querySelectorAll('.screen');
+        function showScreen(id) {
+            screens.forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
 
-        // URL Web App yang sudah dibersihkan dan normal
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx3AdFQWkBSyVsbz6TvYvvJ9dCsGcX2mkUQXcmS24LKLaV5L2r2KmVkln4x_MCrGEmZbg/exec";
+        document.getElementById('coverStartBtn').addEventListener('click', () => showScreen('menu-screen'));
+        document.getElementById('menuAbsensiBtn').addEventListener('click', () => showScreen('form-screen'));
+        document.getElementById('menuScanBtn').addEventListener('click', () => showScreen('admin-login-screen'));
+        document.getElementById('backToMenuFromForm').addEventListener('click', () => showScreen('menu-screen'));
+        document.getElementById('backToMenuFromLogin').addEventListener('click', () => showScreen('menu-screen'));
+        document.getElementById('backToMenuFromResult').addEventListener('click', () => showScreen('menu-screen'));
 
-        attendanceForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const nama = namaInput.value.trim();
-            const kelas = kelasInput.value.trim();
-            const keterangan = statusKeterangan.value;
+        // ================== KONFIGURASI ==================
+        const DEFAULT_PASSWORD = "paskanusa26jaya";
+        const MASTER_KEY = "paskib123";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby2PmJAh9FAPz-dPQkLdGryxTF4Ly-vjrL--JKMZkznxSAgJEJPjenSDiJsnU7-KkTm_w/exec";
 
-            if (nama === "" || kelas === "") {
-                errorMsg.style.display = 'block';
-                errorMsg.innerText = "⚠️ Harap isi Nama dan Kelas terlebih dahulu!";
+        let currentPassword = localStorage.getItem('admin_password') || DEFAULT_PASSWORD;
+        let failedAttempts = parseInt(localStorage.getItem('failed_attempts') || '0');
+        let html5QrcodeScanner = null;
+
+        const savedBg = localStorage.getItem('custom_bg_image');
+        if (savedBg) document.documentElement.style.setProperty('--bg-image', `url(${savedBg})`);
+
+        // Ambil background terbaru dari server saat halaman dibuka, supaya semua device sama
+        fetch(`${WEB_APP_URL}?action=getBackground`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.backgroundUrl) {
+                    document.documentElement.style.setProperty('--bg-image', `url(${data.backgroundUrl})`);
+                }
+            })
+            .catch(err => console.error("Gagal ambil background dari server", err));
+
+        // ================== SETTINGS MODAL ==================
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const bgFileInput = document.getElementById('bgFileInput');
+
+        settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+        closeModalBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+        const bgAdminPass = document.getElementById('bgAdminPass');
+        const bgMsg = document.getElementById('bgMsg');
+
+        bgFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (bgAdminPass.value.trim() === "") {
+                bgMsg.style.display = 'block';
+                bgMsg.style.color = 'var(--error)';
+                bgMsg.innerText = "Masukkan password admin dulu sebelum upload!";
+                bgFileInput.value = "";
                 return;
             }
 
-            errorMsg.style.display = 'none';
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Mengecek status kuncian...";
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64Img = event.target.result;
 
-            // Cek status siswa ke Google Spreadsheet
-            fetch(`${WEB_APP_URL}?nama=${encodeURIComponent(nama)}&kelas=${encodeURIComponent(kelas)}`)
-                .then(response => response.json())
-                .then(data => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "Generate QR Code";
+                bgMsg.style.display = 'block';
+                bgMsg.style.color = 'var(--text-muted)';
+                bgMsg.innerText = "Mengunggah background ke server...";
 
-                    if (data.status === "LOCKED") {
-                        errorMsg.style.display = 'block';
-                        errorMsg.innerHTML = "🔒 <b>AKUN TERKUNCI!</b><br>Kamu tidak hadir 3x berturut-turut. Silakan hubungi Pengurus/Admin!";
+                fetch(WEB_APP_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        type: "updateBackground",
+                        password: bgAdminPass.value,
+                        imageBase64: base64Img
+                    })
+                })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.status === "success") {
+                        document.documentElement.style.setProperty('--bg-image', `url(${result.backgroundUrl})`);
+                        bgMsg.style.color = 'var(--success)';
+                        bgMsg.innerText = "Berhasil! Background baru sudah tersimpan untuk semua orang.";
+                        bgAdminPass.value = "";
+                        bgFileInput.value = "";
                     } else {
-                        const tanggalHariIni = new Date().toISOString().split('T')[0];
-                        const qrText = `Nama: ${nama} | Kelas: ${kelas} | Status: ${keterangan} | Tanggal: ${tanggalHariIni}`;
-
-                        formBox.classList.add('hidden');
-                        resultBox.classList.remove('hidden');
-                        userInfoDisplay.innerText = `${nama} (${kelas}) - ${keterangan}`;
-
-                        document.getElementById("qrcode").innerHTML = "";
-                        new QRCode(document.getElementById("qrcode"), {
-                            text: qrText,
-                            width: 200, height: 200,
-                            colorDark : "#000000", colorLight : "#ffffff",
-                            correctLevel : QRCode.CorrectLevel.H
-                        });
+                        bgMsg.style.color = 'var(--error)';
+                        bgMsg.innerText = result.message || "Gagal menyimpan background.";
+                        bgFileInput.value = "";
                     }
                 })
                 .catch(err => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "Generate QR Code";
-                    console.error("Error checking status", err);
+                    bgMsg.style.color = 'var(--error)';
+                    bgMsg.innerText = "Gagal terhubung ke server: " + err.message;
+                    bgFileInput.value = "";
                 });
+            };
+            reader.readAsDataURL(file);
         });
 
-        resetFormBtn.addEventListener('click', function() {
-            namaInput.value = "";
-            kelasInput.value = "";
-            statusKeterangan.value = "HADIR";
-            resultBox.classList.add('hidden');
-            formBox.classList.remove('hidden');
+        const oldPassInput = document.getElementById('oldPassInput');
+        const newPassInput = document.getElementById('newPassInput');
+        const saveNewPassBtn = document.getElementById('saveNewPassBtn');
+        const passMsg = document.getElementById('passMsg');
+
+        saveNewPassBtn.addEventListener('click', () => {
+            if (oldPassInput.value === currentPassword) {
+                if (newPassInput.value.length >= 4) {
+                    currentPassword = newPassInput.value;
+                    localStorage.setItem('admin_password', currentPassword);
+                    passMsg.style.display = 'block';
+                    passMsg.style.color = 'var(--success)';
+                    passMsg.innerText = "Berhasil! Password baru disimpan.";
+                    oldPassInput.value = ""; newPassInput.value = "";
+                    failedAttempts = 0;
+                    localStorage.setItem('failed_attempts', '0');
+                } else {
+                    passMsg.style.display = 'block';
+                    passMsg.style.color = 'var(--error)';
+                    passMsg.innerText = "Password baru minimal 4 karakter!";
+                }
+            } else {
+                passMsg.style.display = 'block';
+                passMsg.style.color = 'var(--error)';
+                passMsg.innerText = "Password lama salah!";
+            }
         });
 
-        // === TEMA GELAP / TERANG ===
+        // ================== RESET PASSWORD MODAL ==================
+        const resetModal = document.getElementById('resetModal');
+        const closeResetModalBtn = document.getElementById('closeResetModalBtn');
+        const masterKeyInput = document.getElementById('masterKeyInput');
+        const resetNewPassInput = document.getElementById('resetNewPassInput');
+        const executeResetBtn = document.getElementById('executeResetBtn');
+        const resetMsg = document.getElementById('resetMsg');
+
+        closeResetModalBtn.addEventListener('click', () => resetModal.classList.add('hidden'));
+
+        function openResetModal() {
+            resetModal.classList.remove('hidden');
+            masterKeyInput.value = "";
+            resetNewPassInput.value = "";
+            resetMsg.style.display = 'none';
+        }
+
+        executeResetBtn.addEventListener('click', () => {
+            const masterKey = masterKeyInput.value;
+            const newPass = resetNewPassInput.value;
+
+            if (masterKey === MASTER_KEY) {
+                if (newPass.length >= 4) {
+                    currentPassword = newPass;
+                    localStorage.setItem('admin_password', currentPassword);
+                    failedAttempts = 0;
+                    localStorage.setItem('failed_attempts', '0');
+
+                    resetMsg.style.display = 'block';
+                    resetMsg.style.color = 'var(--success)';
+                    resetMsg.innerText = "Berhasil! Password telah direset.";
+
+                    setTimeout(() => {
+                        resetModal.classList.add('hidden');
+                        loginError.style.display = 'none';
+                    }, 1500);
+                } else {
+                    resetMsg.style.display = 'block';
+                    resetMsg.style.color = 'var(--error)';
+                    resetMsg.innerText = "Password baru minimal 4 karakter!";
+                }
+            } else {
+                resetMsg.style.display = 'block';
+                resetMsg.style.color = 'var(--error)';
+                resetMsg.innerText = "Master Key salah!";
+            }
+        });
+
+        // ================== LOGIN ADMIN ==================
+        const loginForm = document.getElementById('loginForm');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginError = document.getElementById('loginError');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const alertBox = document.getElementById('alertBox');
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const inputPass = passwordInput.value;
+
+            loginBtn.disabled = true;
+            loginBtn.innerText = "Memeriksa...";
+            loginError.style.display = 'none';
+
+            setTimeout(() => {
+                loginBtn.disabled = false;
+                loginBtn.innerText = "Masuk scanner";
+
+                if (inputPass === currentPassword) {
+                    passwordInput.value = "";
+                    failedAttempts = 0;
+                    localStorage.setItem('failed_attempts', '0');
+                    loginError.style.display = 'none';
+                    showScreen('scanner-screen');
+                    initScanner();
+                } else {
+                    failedAttempts++;
+                    localStorage.setItem('failed_attempts', failedAttempts);
+                    passwordInput.value = "";
+                    loginError.style.display = 'block';
+
+                    if (failedAttempts >= 3) {
+                        loginError.innerHTML = ` Password salah 3x!<br><span id="forgotPasswordLink" onclick="openResetModal()">Lupa password? Klik di sini untuk reset.</span>`;
+                    } else {
+                        loginError.innerText = ` Password salah! (Percobaan ke-${failedAttempts} dari 3)`;
+                    }
+                }
+            }, 800);
+        });
+
+        logoutBtn.addEventListener('click', function() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().then(() => {
+                    showScreen('admin-login-screen');
+                }).catch(err => console.error("Gagal stop scanner", err));
+            }
+        });
+
+        // ================== TEMA GELAP / TERANG ==================
         const htmlElement = document.documentElement;
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -345,6 +670,138 @@
                 localStorage.setItem('app_theme', 'light');
             }
         });
+
+        // ================== FORM ABSENSI / GENERATE QR ==================
+        const attendanceForm = document.getElementById('attendanceForm');
+        const namaInput = document.getElementById('namaInput');
+        const kelasInput = document.getElementById('kelasInput');
+        const statusKeterangan = document.getElementById('statusKeterangan');
+        const errorMsg = document.getElementById('errorMsg');
+        const userInfoDisplay = document.getElementById('userInfoDisplay');
+        const resetFormBtn = document.getElementById('resetFormBtn');
+        const submitBtn = attendanceForm.querySelector('button[type="submit"]');
+
+        attendanceForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nama = namaInput.value.trim();
+            const kelas = kelasInput.value.trim();
+            const keterangan = statusKeterangan.value;
+
+            if (nama === "" || kelas === "") {
+                errorMsg.style.display = 'block';
+                errorMsg.innerText = " Harap isi Nama dan Kelas terlebih dahulu!";
+                return;
+            }
+
+            errorMsg.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Mengecek status kuncian...";
+
+            fetch(`${WEB_APP_URL}?nama=${encodeURIComponent(nama)}&kelas=${encodeURIComponent(kelas)}`)
+                .then(response => response.json())
+                .then(data => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Generate QR Code";
+
+                    if (data.status === "LOCKED") {
+                        errorMsg.style.display = 'block';
+                        errorMsg.innerHTML = " <b>AKUN TERKUNCI!</b><br>Kamu tidak hadir 3x berturut-turut. Silakan hubungi Pengurus/Admin!";
+                    } else {
+                        const now = new Date();
+                        const tanggalHariIni = now.getFullYear() + "-" +
+                            String(now.getMonth() + 1).padStart(2, "0") + "-" +
+                            String(now.getDate()).padStart(2, "0");
+                        const qrText = `Nama: ${nama} | Kelas: ${kelas} | Status: ${keterangan} | Tanggal: ${tanggalHariIni}`;
+
+                        showScreen('qr-result-screen');
+                        userInfoDisplay.innerText = `${nama} (${kelas}) - ${keterangan}`;
+
+                        document.getElementById("qrcode").innerHTML = "";
+                        new QRCode(document.getElementById("qrcode"), {
+                            text: qrText,
+                            width: 200, height: 200,
+                            colorDark : "#000000", colorLight : "#ffffff",
+                            correctLevel : QRCode.CorrectLevel.H
+                        });
+                    }
+                })
+                .catch(err => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Generate QR Code";
+                    errorMsg.style.display = 'block';
+                    errorMsg.innerHTML = " Gagal terhubung ke server. Cek koneksi internet atau hubungi admin.<br><small style='opacity:0.7'>" + err.message + "</small>";
+                    console.error("Error checking status", err);
+                });
+        });
+
+        resetFormBtn.addEventListener('click', function() {
+            namaInput.value = "";
+            kelasInput.value = "";
+            statusKeterangan.value = "HADIR";
+            showScreen('form-screen');
+        });
+
+        // ================== SCANNER ==================
+        function showNotification(message, type) {
+            alertBox.innerText = message;
+            alertBox.style.display = 'block';
+            alertBox.className = `alert alert-${type}`;
+            setTimeout(() => { alertBox.style.display = 'none'; }, 4000);
+        }
+
+        function sendToSpreadsheet(decodedText) {
+            try {
+                let parts = decodedText.split(" | ");
+                let nama = parts[0] ? parts[0].replace("Nama: ", "") : "Tidak Dikenal";
+                let kelas = parts[1] ? parts[1].replace("Kelas: ", "") : "-";
+                let statusKet = parts[2] && parts[2].includes("Status: ") ? parts[2].replace("Status: ", "") : "HADIR";
+                let tanggal = parts[3] ? parts[3].replace("Tanggal: ", "") : new Date().toISOString().split('T')[0];
+                let waktu = new Date().toLocaleTimeString();
+
+                let dataKirim = { nama: nama, kelas: kelas, status: statusKet, tanggal: tanggal, waktu: waktu };
+
+                showNotification(`Memproses absensi ${nama}...`, "success");
+
+                fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dataKirim)
+                })
+                .then(() => {
+                    showNotification(` SUKSES! Absensi ${nama} (${kelas}) dengan status ${statusKet} berhasil masuk Spreadsheet!`, "success");
+                })
+                .catch(error => {
+                    showNotification(" Gagal mengirim data ke database!", "error");
+                });
+
+            } catch (e) {
+                showNotification(" Format QR Code tidak valid!", "error");
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            html5QrcodeScanner.clear().then(_ => {
+                sendToSpreadsheet(decodedText);
+                setTimeout(() => { html5QrcodeScanner.render(onScanSuccess); }, 3000);
+            }).catch(error => console.error("Failed to clear scanner", error));
+        }
+
+        function initScanner() {
+            try {
+                if (typeof Html5QrcodeScanner === 'undefined') {
+                    document.getElementById('reader').innerHTML = '<p style="color:#f78888;padding:16px;text-align:center;"> Library kamera gagal dimuat. Cek koneksi internet lalu refresh halaman.</p>';
+                    return;
+                }
+                if (!html5QrcodeScanner) {
+                    html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+                }
+                html5QrcodeScanner.render(onScanSuccess);
+            } catch (err) {
+                console.error("Gagal inisialisasi scanner", err);
+                document.getElementById('reader').innerHTML = '<p style="color:#f78888;padding:16px;text-align:center;"> Gagal membuka kamera: ' + err.message + '</p>';
+            }
+        }
     </script>
 </body>
 </html>
