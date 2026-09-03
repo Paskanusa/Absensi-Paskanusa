@@ -680,19 +680,6 @@
         let failedAttempts = parseInt(localStorage.getItem('failed_attempts') || '0');
         let html5QrcodeScanner = null;
 
-        const savedBg = localStorage.getItem('custom_bg_image');
-        if (savedBg) document.documentElement.style.setProperty('--bg-image', `url(${savedBg})`);
-
-        // Ambil background terbaru dari server saat halaman dibuka, supaya semua device sama
-        fetch(`${WEB_APP_URL}?action=getBackground`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.backgroundUrl) {
-                    document.documentElement.style.setProperty('--bg-image', `url(${data.backgroundUrl})`);
-                }
-            })
-            .catch(err => console.error("Gagal ambil background dari server", err));
-
         // ================== SETTINGS MODAL ==================
         const settingsBtn = document.getElementById('settingsBtn');
         const settingsModal = document.getElementById('settingsModal');
