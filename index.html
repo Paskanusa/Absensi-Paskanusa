@@ -8,55 +8,73 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Library untuk akses kamera & baca QR Code -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <!-- Using system Times New Roman font instead of web fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-image: url('background.jpeg');
-            --bg-base: #0a0c11;
-            --bg-panel: rgba(18, 21, 29, 0.88);
-            --bg-panel-raised: #171b26;
-            --line: #232838;
-            --line-soft: #1a1e2a;
-            --red: #e11d2a;
-            --red-dim: #7a1620;
-            --red-glow: rgba(225, 29, 42, 0.35);
-            --text-primary: #f3f5f9;
-            --text-muted: #8890a3;
-            --text-faint: #545c70;
+            --bg-image:
+                radial-gradient(circle at 18% 10%, rgba(31, 150, 150, 0.30) 0%, transparent 45%),
+                radial-gradient(circle at 88% 94%, rgba(20, 90, 110, 0.35) 0%, transparent 50%),
+                linear-gradient(165deg, #0e2e33 0%, #071417 100%);
+            --bg-base: #071316;
+            --bg-panel: rgba(14, 38, 43, 0.55);
+            --bg-panel-raised: rgba(255, 255, 255, 0.06);
+            --line: rgba(255, 255, 255, 0.12);
+            --line-soft: rgba(255, 255, 255, 0.07);
+            --red: #22d3bd;
+            --red-dim: #0f6f66;
+            --red-glow: rgba(34, 211, 189, 0.30);
+            --primary-btn-bg: #ffffff;
+            --primary-btn-text: #082226;
+            --text-primary: #f2f8f8;
+            --text-muted: #93aab0;
+            --text-faint: #5b7278;
             --success: #34d399;
             --success-bg: #0e2b22;
             --success-border: #175a41;
             --error: #f78888;
             --error-bg: #331213;
             --error-border: #6b2226;
-            --overlay-dim: rgba(0, 0, 0, 0.65);
+            --overlay-dim: rgba(0, 0, 0, 0.12);
         }
 
         [data-theme="light"] {
-            --bg-base: #f1f5f9;
-            --bg-panel: rgba(255, 255, 255, 0.92);
-            --bg-panel-raised: #e2e8f0;
-            --line: #cbd5e1;
-            --line-soft: #e2e8f0;
-            --red: #dc2626;
-            --red-dim: #991b1b;
-            --red-glow: rgba(220, 38, 38, 0.2);
-            --text-primary: #0f172a;
-            --text-muted: #64748b;
-            --text-faint: #94a3b8;
+            --bg-base: #eef6f6;
+            --bg-panel: rgba(255, 255, 255, 0.85);
+            --bg-panel-raised: #e4f1f1;
+            --line: #cfe4e4;
+            --line-soft: #e2f0f0;
+            --red: #0d9488;
+            --red-dim: #0f766e;
+            --red-glow: rgba(13, 148, 136, 0.2);
+            --primary-btn-bg: #0d2b2e;
+            --primary-btn-text: #ffffff;
+            --text-primary: #0f2b2e;
+            --text-muted: #4f6b6f;
+            --text-faint: #85999c;
             --success: #059669;
             --success-bg: #d1fae5;
             --success-border: #34d399;
             --error: #dc2626;
             --error-bg: #fee2e2;
             --error-border: #fca5a5;
-            --overlay-dim: rgba(255, 255, 255, 0.55);
+            --overlay-dim: rgba(255, 255, 255, 0.5);
         }
 
         * { box-sizing: border-box; }
 
+        body::before, body::after {
+            content: "";
+            position: fixed;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, 0.12);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::before { top: -130px; left: -130px; width: 320px; height: 320px; }
+        body::after { bottom: -170px; right: -170px; width: 440px; height: 440px; }
+
         body {
-            font-family: "Times New Roman", Times, serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             background: linear-gradient(var(--overlay-dim), var(--overlay-dim)), var(--bg-image) no-repeat center center fixed;
             background-size: cover;
             color: var(--text-primary);
@@ -68,7 +86,7 @@
             margin: 0;
             padding: 32px 20px;
             position: relative;
-            transition: background 0.3s ease, color 0.3s ease;
+            transition: background 2.0s ease, color 2.0s ease;
         }
 
         .top-controls {
@@ -90,7 +108,7 @@
             font-weight: 600;
             cursor: pointer;
             backdrop-filter: blur(8px);
-            transition: all 0.2s ease;
+            transition: all 2.0s ease;
         }
         .control-btn:hover { border-color: var(--red); }
 
@@ -125,11 +143,12 @@
             max-width: 400px;
             text-align: left;
         }
-        .modal-card h3 { margin-top: 0; font-family: "Times New Roman", Times, serif; font-size: 18px; text-align: center; }
+        .modal-card h3 { margin-top: 0; font-family: 'Sora', sans-serif; font-size: 18px; text-align: center; }
         .modal-card label { font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 5px; margin-top: 12px; }
 
         .stage {
             position: relative;
+            z-index: 1;
             width: 100%;
             max-width: 400px;
             display: flex;
@@ -152,56 +171,75 @@
         }
         .brand-mark img { width: 100%; height: 100%; object-fit: contain; }
         .brand-mark.brand-mark-lg { width: 84px; height: 84px; border-radius: 18px; }
-        .brand-text { font-family: "Times New Roman", Times, serif; font-size: 13px; font-weight: 500; color: var(--text-primary); text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+        .brand-text { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-primary); text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
 
         .box {
             position: relative;
             background: var(--bg-panel);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
             border: 1px solid var(--line);
-            padding: 34px 28px 28px;
-            border-radius: 18px 18px 22px 22px;
-            box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.4);
+            padding: 36px 30px;
+            border-radius: 28px;
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55);
             width: 100%;
             text-align: center;
         }
-        .box::before {
-            content: ""; position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
-            width: 46px; height: 26px; background: var(--bg-base); border: 1px solid var(--line); border-bottom: none; border-radius: 12px 12px 0 0;
-        }
-        .box::after {
-            content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
-            width: 26px; height: 10px; background: var(--bg-panel); border-radius: 6px;
-        }
 
-        h2 { margin: 6px 0 4px; font-family: "Times New Roman", Times, serif; font-size: 20px; font-weight: 700; color: var(--text-primary); }
-        h1.cover-title { margin: 4px 0 8px; font-family: "Times New Roman", Times, serif; font-size: 26px; font-weight: 800; color: var(--text-primary); }
+        h2 { margin: 6px 0 4px; font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; color: var(--text-primary); }
+        h1.cover-title { margin: 4px 0 8px; font-family: 'Sora', sans-serif; font-size: 28px; font-weight: 800; color: var(--text-primary); }
         p { color: var(--text-muted); font-size: 13.5px; line-height: 1.5; margin: 0 0 22px; }
         p.form-hint { text-align: left; }
 
         label { font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 5px; text-align: left; }
 
         input, select {
-            width: 100%; padding: 13px 16px; margin-bottom: 14px;
-            border: 1.5px solid var(--line); border-radius: 10px;
+            width: 100%; padding: 14px 16px; margin-bottom: 14px;
+            border: 1px solid var(--line); border-radius: 14px;
             background: var(--bg-panel-raised); color: var(--text-primary);
-            font-family: "Times New Roman", Times, serif; font-size: 15px; outline: none;
-            transition: border-color 0.2s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; outline: none;
+            transition: border-color 2.0s ease;
         }
         input::placeholder { color: var(--text-faint); }
         input:focus, select:focus { border-color: var(--red); box-shadow: 0 0 0 4px var(--red-glow); }
 
-        .btn {
-            background: var(--red); color: white; padding: 13px; width: 100%;
-            border: none; border-radius: 10px; cursor: pointer;
-            font-family: "Times New Roman", Times, serif; font-size: 15px; font-weight: 600;
-            transition: opacity 0.2s, transform 0.15s ease, box-shadow 0.15s ease;
+        .custom-select { position: relative; margin-bottom: 14px; }
+        .custom-select-trigger {
+            width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px;
+            background: var(--bg-panel-raised); color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; text-align: left;
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; transition: border-color 2.0s ease;
         }
-        .btn:hover { opacity: 0.9; box-shadow: 0 8px 18px var(--red-glow); }
+        .custom-select-trigger:hover { border-color: var(--red); }
+        .custom-select-trigger svg { color: var(--text-muted); transition: transform 2.0s ease; flex-shrink: 0; }
+        .custom-select.open .custom-select-trigger svg { transform: rotate(180deg); }
+
+        .custom-select-options {
+            position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 20;
+            background: var(--bg-panel); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+            border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+        }
+        .custom-select-option {
+            padding: 12px 16px; font-size: 14px; color: var(--text-primary);
+            cursor: pointer; text-align: left; transition: background 2.0s ease;
+        }
+        .custom-select-option:hover { background: var(--bg-panel-raised); }
+        .custom-select-option.selected { background: var(--red); color: #062018; font-weight: 700; }
+
+        .btn {
+            background: var(--primary-btn-bg); color: var(--primary-btn-text); padding: 14px; width: 100%;
+            border: none; border-radius: 999px; cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700;
+            transition: transform 2.0s ease, box-shadow 2.0s ease;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35); }
         .btn:active { transform: scale(0.98); }
-        .btn.btn-ghost { background: transparent; color: var(--text-muted); border: 1.5px solid var(--line); }
-        .btn.btn-ghost:hover { background: var(--bg-panel-raised); color: var(--text-primary); box-shadow: none; opacity: 1; }
-        .btn.btn-secondary { background: #334155; }
+        .btn.btn-ghost { background: transparent; color: var(--text-muted); border: 1.5px solid var(--line); border-radius: 14px; }
+        .btn.btn-ghost:hover { background: var(--bg-panel-raised); color: var(--text-primary); box-shadow: none; transform: none; }
+        .btn.btn-secondary { background: var(--bg-panel-raised); color: var(--text-primary); border: 1px solid var(--line); border-radius: 14px; }
+        .btn.btn-secondary:hover { box-shadow: none; transform: none; border-color: var(--red); }
 
         .btn-row { display: flex; flex-direction: column; gap: 12px; }
 
@@ -210,7 +248,7 @@
             background: none;
             border: none;
             color: var(--text-muted);
-            font-family: "Times New Roman", Times, serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
@@ -238,7 +276,7 @@
 
         #reader { width: 100% !important; border: none !important; }
         #reader select, #reader button {
-            font-family: "Times New Roman", Times, serif; background: var(--bg-panel-raised);
+            font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-panel-raised);
             color: var(--text-primary); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 13px; margin: 6px 4px; cursor: pointer;
         }
         #reader a { color: var(--red); }
@@ -256,15 +294,79 @@
         .menu-options { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
         .menu-option {
             display: flex; align-items: center; gap: 14px; text-align: left;
-            padding: 16px; border: 1.5px solid var(--line); border-radius: 14px;
-            background: var(--bg-panel-raised); cursor: pointer; transition: border-color 0.2s ease, transform 0.15s ease;
+            padding: 18px; border: 1px solid var(--line); border-radius: 18px;
+            background: var(--bg-panel-raised); cursor: pointer;
+            transition: border-color 2.0s ease, transform 2.0s ease, background 2.0s ease;
         }
-        .menu-option:hover { border-color: var(--red); transform: translateY(-2px); }
+        .menu-option:hover {
+            border-color: transparent;
+            background: linear-gradient(135deg, #1b3fae 0%, #12b8a6 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px -10px rgba(18, 184, 166, 0.4);
+        }
         .menu-option .icon { font-size: 26px; }
-        .menu-option .label { font-family: "Times New Roman", Times, serif; font-weight: 700; font-size: 15px; color: var(--text-primary); }
+        .menu-option .label { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 15px; color: var(--text-primary); }
         .menu-option .sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .menu-option:hover .sub { color: rgba(255,255,255,0.8); }
+
+        .icon-tile {
+            position: relative;
+            width: 56px; height: 56px; border-radius: 20px;
+            background: linear-gradient(145deg, #161d24, #05080b);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            box-shadow:
+                inset 0 1px 1px rgba(255,255,255,0.10),
+                inset 0 -8px 14px rgba(0,0,0,0.45),
+                0 8px 18px -6px rgba(0,0,0,0.5);
+        }
+        .icon-tile::after {
+            content: "";
+            position: absolute;
+            bottom: -12px; left: 50%; transform: translateX(-50%);
+            width: 65%; height: 18px;
+            background: var(--tile-glow);
+            filter: blur(12px);
+            border-radius: 50%;
+            z-index: -1;
+        }
+        .icon-tile svg {
+            width: 26px; height: 26px;
+            color: var(--tile-color);
+            filter: drop-shadow(0 0 7px var(--tile-glow));
+        }
+        .icon-tile-blue { --tile-color: #5ec8ff; --tile-glow: rgba(56, 189, 248, 0.65); }
+        .icon-tile-pink { --tile-color: #ff77ab; --tile-glow: rgba(244, 114, 182, 0.65); }
 
         .screen.hidden, .hidden { display: none !important; }
+
+        @keyframes screenIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .screen.enter-anim { animation: screenIn 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+
+        @media (prefers-reduced-motion: reduce) {
+            .screen.enter-anim { animation: none; }
+            .brand, #cover-screen, body::before, body::after { animation: none !important; }
+        }
+
+        @keyframes introFadeDown {
+            from { opacity: 0; transform: translateY(-14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes introRiseUp {
+            from { opacity: 0; transform: translateY(36px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes introRingFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .brand { animation: introFadeDown 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        #cover-screen { animation: introRiseUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both; }
+        body::before, body::after { animation: introRingFade 1.4s ease 0.1s both; }
 
         @media (max-width: 380px) {
             .box { padding: 28px 20px 22px; }
@@ -279,7 +381,7 @@
         <button class="control-btn" id="themeToggleBtn" title="Mode">🌓 Mode</button>
     </div>
 
-    <div class="footer-credit">© 2026 noplaawz. All rights reserved.</div>
+    <div class="footer-credit">© 2026 Nopla. All rights reserved.</div>
 
     <!-- MODAL SETTING -->
     <div id="settingsModal" class="modal-bg hidden">
@@ -346,14 +448,26 @@
             <p>Pilih salah satu di bawah ini.</p>
             <div class="menu-options">
                 <div class="menu-option" id="menuAbsensiBtn">
-                    <span class="icon">📋</span>
+                    <div class="icon-tile icon-tile-blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="6" y="4" width="12" height="16" rx="2"/>
+                            <path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/>
+                            <line x1="9" y1="10" x2="15" y2="10"/>
+                            <line x1="9" y1="14" x2="15" y2="14"/>
+                        </svg>
+                    </div>
                     <div>
                         <div class="label">Absensi</div>
                         <div class="sub">Isi data & generate QR Code kehadiran</div>
                     </div>
                 </div>
                 <div class="menu-option" id="menuScanBtn">
-                    <span class="icon">🔒</span>
+                    <div class="icon-tile icon-tile-pink">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="11" width="16" height="9" rx="2"/>
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+                        </svg>
+                    </div>
                     <div>
                         <div class="label">Scan / Admin</div>
                         <div class="sub">Khusus pengurus, perlu password</div>
@@ -365,7 +479,7 @@
         <!-- LAYAR 3: FORM ABSENSI -->
         <div id="form-screen" class="screen box hidden">
             <button class="back-link" id="backToMenuFromForm">← Kembali ke menu</button>
-            <h2>Absensi Anggota</h2>
+            <h2>Absensi Siswa</h2>
             <p class="form-hint">Masukkan data diri kamu untuk menghasilkan QR Code kehadiran.</p>
 
             <form id="attendanceForm">
@@ -376,11 +490,18 @@
                 <input type="text" id="kelasInput" placeholder="Contoh: XII MKT 2" autocomplete="off" style="text-transform: uppercase;">
 
                 <label>Keterangan Kehadiran:</label>
-                <select id="statusKeterangan">
-                    <option value="HADIR">Hadir</option>
-                    <option value="IZIN">Izin</option>
-                    <option value="SAKIT">Sakit</option>
-                </select>
+                <div class="custom-select" id="statusDropdown">
+                    <button type="button" class="custom-select-trigger" id="statusTrigger">
+                        <span id="statusTriggerLabel">Hadir</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="custom-select-options hidden" id="statusOptions">
+                        <div class="custom-select-option selected" data-value="HADIR">Hadir</div>
+                        <div class="custom-select-option" data-value="IZIN">Izin</div>
+                        <div class="custom-select-option" data-value="SAKIT">Sakit</div>
+                    </div>
+                </div>
+                <input type="hidden" id="statusKeterangan" value="HADIR">
 
                 <p id="errorMsg">⚠️ Harap isi Nama dan Kelas terlebih dahulu!</p>
 
@@ -439,7 +560,11 @@
         const screens = document.querySelectorAll('.screen');
         function showScreen(id) {
             screens.forEach(s => s.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
+            const target = document.getElementById(id);
+            target.classList.remove('hidden');
+            target.classList.remove('enter-anim');
+            void target.offsetWidth; // paksa reflow supaya animasi bisa diulang
+            target.classList.add('enter-anim');
         }
 
         document.getElementById('coverStartBtn').addEventListener('click', () => showScreen('menu-screen'));
@@ -689,6 +814,35 @@
         const namaInput = document.getElementById('namaInput');
         const kelasInput = document.getElementById('kelasInput');
         const statusKeterangan = document.getElementById('statusKeterangan');
+
+        // ================== DROPDOWN CUSTOM KETERANGAN KEHADIRAN ==================
+        const statusDropdown = document.getElementById('statusDropdown');
+        const statusTrigger = document.getElementById('statusTrigger');
+        const statusTriggerLabel = document.getElementById('statusTriggerLabel');
+        const statusOptions = document.getElementById('statusOptions');
+
+        statusTrigger.addEventListener('click', () => {
+            statusOptions.classList.toggle('hidden');
+            statusDropdown.classList.toggle('open');
+        });
+
+        statusOptions.querySelectorAll('.custom-select-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                statusOptions.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                statusKeterangan.value = opt.dataset.value;
+                statusTriggerLabel.innerText = opt.innerText;
+                statusOptions.classList.add('hidden');
+                statusDropdown.classList.remove('open');
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!statusDropdown.contains(e.target)) {
+                statusOptions.classList.add('hidden');
+                statusDropdown.classList.remove('open');
+            }
+        });
         const errorMsg = document.getElementById('errorMsg');
         const userInfoDisplay = document.getElementById('userInfoDisplay');
         const resetFormBtn = document.getElementById('resetFormBtn');
@@ -751,6 +905,9 @@
             namaInput.value = "";
             kelasInput.value = "";
             statusKeterangan.value = "HADIR";
+            statusTriggerLabel.innerText = "Hadir";
+            statusOptions.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+            statusOptions.querySelector('[data-value="HADIR"]').classList.add('selected');
             showScreen('form-screen');
         });
 
